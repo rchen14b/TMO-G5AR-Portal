@@ -2,11 +2,22 @@
 
 import useSWR from "swr"
 
-const fetcher = (url: string) =>
-  fetch(url, {
+const fetcher = async (url: string) => {
+  const res = await fetch(url, {
     cache: "no-store",
     headers: { "Cache-Control": "no-cache" },
-  }).then((res) => res.json())
+  })
+
+  const data = await res.json()
+
+  // Check for authentication errors and redirect to login
+  if (data.error === "Not authenticated" || res.status === 401) {
+    window.location.href = "/login"
+    throw new Error("Not authenticated")
+  }
+
+  return data
+}
 
 export interface GatewayHealthStatus {
   status: "online" | "offline" | "error"

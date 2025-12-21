@@ -1,0 +1,588 @@
+openapi: 3.0.3
+info:
+  title: T-Mobile Arcadyan G5AR Gateway API
+  description: |
+    Undocumented REST API for T-Mobile Arcadyan G5AR 5G Gateway.
+
+    **Base URL:** `http://192.168.12.1/TMI/v1`
+
+    **Authentication:**
+    Most endpoints require Bearer token authentication. Obtain a token via `/auth/login`.
+
+    **Note:** This API is undocumented and may change without notice.
+  version: "3.1"
+  contact:
+    name: Gateway API Documentation
+servers:
+  - url: http://192.168.12.1/TMI/v1
+    description: Gateway Local Network
+
+paths:
+  /version:
+    get:
+      summary: Get API Version
+      description: Returns the API version number. No authentication required.
+      tags:
+        - System
+      security: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VersionResponse"
+              example:
+                version: 3.1
+
+  /auth/login:
+    post:
+      summary: Login and Get Auth Token
+      description: Authenticate with username and password to receive a Bearer token.
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+            example:
+              username: admin
+              password: your_password_here
+      responses:
+        "200":
+          description: Successful authentication
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+              example:
+                auth:
+                  expiration: 1766291161
+                  token: "eyJhbGciOiJIUzI1NiJ9..."
+
+  /gateway:
+    get:
+      summary: Get Gateway Information
+      description: |
+        Returns device info, signal data, and time information.
+        Use query parameter `get=all` for complete data or `get=signal` for signal only.
+      tags:
+        - Gateway
+      security: []
+      parameters:
+        - name: get
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [all, signal]
+          description: Type of data to retrieve
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayResponse"
+
+  /gateway/reset:
+    post:
+      summary: Reboot Gateway
+      description: Initiates a gateway reboot. Requires authentication.
+      tags:
+        - Gateway
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: set
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [reboot]
+      responses:
+        "200":
+          description: Reboot initiated
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /network/telemetry:
+    get:
+      summary: Get Network Telemetry
+      description: |
+        Returns network telemetry data. Requires authentication.
+        - `get=all`: Returns cell, clients, and SIM data in one response
+        - `get=cell`: Returns cell tower information
+        - `get=clients`: Returns connected client devices
+        - `get=sim`: Returns SIM card information
+      tags:
+        - Network
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: get
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [all, cell, clients, sim]
+          description: Type of telemetry data to retrieve
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/TelemetryAllResponse"
+                  - $ref: "#/components/schemas/CellResponse"
+                  - $ref: "#/components/schemas/ClientsResponse"
+                  - $ref: "#/components/schemas/SimResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /network/configuration/v2:
+    get:
+      summary: Get Access Point Configuration
+      description: Returns WiFi access point configuration. Requires authentication.
+      tags:
+        - WiFi
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: get
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [ap]
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApConfigResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "408":
+          description: Gateway busy (retry after a few seconds)
+    post:
+      summary: Set Access Point Configuration
+      description: |
+        Updates WiFi access point configuration. Requires authentication.
+        **Warning:** Changing radio settings will cause the gateway to restart.
+      tags:
+        - WiFi
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: set
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [ap]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApConfigResponse"
+      responses:
+        "200":
+          description: Configuration updated
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from /auth/login
+
+  responses:
+    Unauthorized:
+      description: Authentication required or token invalid
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            result:
+              error: AuthorizationError
+              message: "Not Authorized, Access token is missing or invalid"
+              statusCode: 401
+
+  schemas:
+    VersionResponse:
+      type: object
+      properties:
+        version:
+          type: number
+          description: API version number
+          example: 3.1
+
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: admin
+        password:
+          type: string
+          example: your_password
+
+    LoginResponse:
+      type: object
+      properties:
+        auth:
+          type: object
+          properties:
+            expiration:
+              type: integer
+              description: Unix timestamp when token expires
+            token:
+              type: string
+              description: JWT Bearer token
+
+    ErrorResponse:
+      type: object
+      properties:
+        result:
+          type: object
+          properties:
+            error:
+              type: string
+            message:
+              type: string
+            statusCode:
+              type: integer
+
+    GatewayResponse:
+      type: object
+      properties:
+        device:
+          $ref: "#/components/schemas/DeviceInfo"
+        signal:
+          $ref: "#/components/schemas/SignalInfo"
+        time:
+          $ref: "#/components/schemas/TimeInfo"
+
+    DeviceInfo:
+      type: object
+      properties:
+        hardwareVersion:
+          type: string
+          example: R01
+        macId:
+          type: string
+          example: "AA:BB:CC:DD:EE:FF"
+        manufacturer:
+          type: string
+          example: Arcadyan
+        model:
+          type: string
+          example: TMO-G5AR
+        role:
+          type: string
+          example: gateway
+        serial:
+          type: string
+          example: XXXXXXXXX
+        softwareVersion:
+          type: string
+          example: "1.00.02"
+
+    SignalInfo:
+      type: object
+      properties:
+        5g:
+          $ref: "#/components/schemas/Signal5G"
+        4g:
+          $ref: "#/components/schemas/Signal4G"
+        generic:
+          $ref: "#/components/schemas/SignalGeneric"
+
+    Signal5G:
+      type: object
+      properties:
+        antennaUsed:
+          type: string
+          example: Internal_omni
+        bands:
+          type: array
+          items:
+            type: string
+          example: ["n41"]
+        bars:
+          type: number
+          example: 4.0
+        cid:
+          type: integer
+          description: Cell ID
+          example: 311
+        gNBID:
+          type: integer
+          description: gNodeB ID (5G base station)
+          example: 1051453
+        rsrp:
+          type: integer
+          description: Reference Signal Received Power (dBm)
+          example: -92
+        rsrq:
+          type: integer
+          description: Reference Signal Received Quality (dB)
+          example: -11
+        rssi:
+          type: integer
+          description: Received Signal Strength Indicator (dBm)
+          example: -79
+        sinr:
+          type: integer
+          description: Signal to Interference plus Noise Ratio (dB)
+          example: 3
+
+    Signal4G:
+      type: object
+      properties:
+        antennaUsed:
+          type: string
+        bands:
+          type: array
+          items:
+            type: string
+        bars:
+          type: number
+        cid:
+          type: integer
+        eNBID:
+          type: integer
+          description: eNodeB ID (4G base station)
+        rsrp:
+          type: integer
+        rsrq:
+          type: integer
+        rssi:
+          type: integer
+        sinr:
+          type: integer
+
+    SignalGeneric:
+      type: object
+      properties:
+        apn:
+          type: string
+          example: FBB.HOME
+        hasIPv6:
+          type: boolean
+          example: true
+        registration:
+          type: string
+          example: registered
+
+    TimeInfo:
+      type: object
+      properties:
+        localTime:
+          type: integer
+          description: Unix timestamp
+          example: 1766290308
+        localTimeZone:
+          type: string
+          example: "-06:00"
+        upTime:
+          type: integer
+          description: Uptime in seconds
+          example: 3590
+
+    TelemetryAllResponse:
+      type: object
+      description: Combined response from get=all (cell + clients + sim)
+      properties:
+        cell:
+          $ref: "#/components/schemas/CellData"
+        clients:
+          $ref: "#/components/schemas/ClientsData"
+        sim:
+          $ref: "#/components/schemas/SimData"
+
+    CellResponse:
+      type: object
+      properties:
+        cell:
+          $ref: "#/components/schemas/CellData"
+
+    CellData:
+      type: object
+      properties:
+        5g:
+          type: object
+          properties:
+            cqi:
+              type: integer
+              description: Channel Quality Indicator
+              example: 4
+            ecgi:
+              type: string
+              description: E-UTRAN Cell Global Identifier
+              example: "310260123456789"
+            sector:
+              $ref: "#/components/schemas/Signal5G"
+        generic:
+          $ref: "#/components/schemas/SignalGeneric"
+        gps:
+          type: object
+          properties:
+            latitude:
+              type: number
+              example: 0.0
+            longitude:
+              type: number
+              example: 0.0
+
+    ClientsResponse:
+      type: object
+      properties:
+        clients:
+          $ref: "#/components/schemas/ClientsData"
+
+    ClientsData:
+      type: object
+      properties:
+        2.4ghz:
+          type: array
+          items:
+            $ref: "#/components/schemas/Client"
+        5.0ghz:
+          type: array
+          items:
+            $ref: "#/components/schemas/Client"
+        6.0ghz:
+          type: array
+          items:
+            $ref: "#/components/schemas/Client"
+        ethernet:
+          type: array
+          items:
+            $ref: "#/components/schemas/Client"
+        wifi:
+          type: array
+          items:
+            $ref: "#/components/schemas/Client"
+
+    Client:
+      type: object
+      properties:
+        connected:
+          type: boolean
+          example: true
+        ipv4:
+          type: string
+          example: "192.168.12.100"
+        ipv6:
+          type: array
+          items:
+            type: string
+          example: ["fe80::1234:5678:abcd:ef00"]
+        mac:
+          type: string
+          example: "AA:BB:CC:DD:EE:FF"
+        name:
+          type: string
+          example: iPhone
+        signal:
+          type: integer
+          description: WiFi signal strength (dBm), not present for ethernet
+          example: -46
+
+    SimResponse:
+      type: object
+      properties:
+        sim:
+          $ref: "#/components/schemas/SimData"
+
+    SimData:
+      type: object
+      properties:
+        iccId:
+          type: string
+          description: Integrated Circuit Card Identifier
+          example: "89012601234567890123"
+        imei:
+          type: string
+          description: International Mobile Equipment Identity
+          example: "123456789012345"
+        imsi:
+          type: string
+          description: International Mobile Subscriber Identity
+          example: "310260123456789"
+        msisdn:
+          type: string
+          description: Phone number (may be empty)
+          example: ""
+        status:
+          type: boolean
+          example: true
+
+    ApConfigResponse:
+      type: object
+      properties:
+        2.4ghz:
+          type: object
+          properties:
+            isRadioEnabled:
+              type: boolean
+        5.0ghz:
+          type: object
+          properties:
+            isRadioEnabled:
+              type: boolean
+        6.0ghz:
+          type: object
+          properties:
+            isRadioEnabled:
+              type: boolean
+        ssids:
+          type: array
+          items:
+            $ref: "#/components/schemas/SsidConfig"
+
+    SsidConfig:
+      type: object
+      properties:
+        2.4ghzSsid:
+          type: boolean
+          description: Broadcast on 2.4GHz band
+        5.0ghzSsid:
+          type: boolean
+          description: Broadcast on 5GHz band
+        6.0ghzSsid:
+          type: boolean
+          description: Broadcast on 6GHz band (WiFi 6E)
+        encryptionMode:
+          type: string
+          example: AES
+        encryptionVersion:
+          type: string
+          example: WPA2/WPA3
+        guest:
+          type: boolean
+          description: Is this a guest network
+        isBroadcastEnabled:
+          type: boolean
+          description: SSID visible to devices
+        ssidName:
+          type: string
+          example: MyNetwork
+        wpaKey:
+          type: string
+          description: WiFi password

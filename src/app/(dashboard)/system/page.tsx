@@ -13,7 +13,6 @@ import {
   Power,
   Cpu,
   AlertTriangle,
-  RefreshCw,
 } from "lucide-react"
 
 export default function SystemPage() {
@@ -190,11 +189,6 @@ export default function SystemPage() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-4">
-              <Button variant="outline" onClick={() => mutate()} className="glass h-12 px-6">
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Refresh Data
-              </Button>
-
               {!showConfirm ? (
                 <Button
                   variant="destructive"

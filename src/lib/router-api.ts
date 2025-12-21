@@ -41,6 +41,10 @@ export async function routerFetch<T>(
   })
 
   if (!response.ok) {
+    // Handle authentication errors from the gateway
+    if (response.status === 401 || response.status === 403) {
+      throw new Error("Not authenticated")
+    }
     const error = await response.json().catch(() => ({}))
     throw new Error(error.result?.message || `Request failed: ${response.status}`)
   }

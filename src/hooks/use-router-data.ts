@@ -2,18 +2,46 @@
 
 import useSWR from "swr"
 
+// Track if we're already redirecting to prevent multiple redirects
+let isRedirecting = false
+
+async function handleUnauthorized() {
+  if (isRedirecting) return
+  isRedirecting = true
+
+  // Clear cookies on server
+  try {
+    await fetch("/api/router/logout", { method: "POST" })
+  } catch {
+    // Ignore errors, proceed to redirect
+  }
+
+  window.location.href = "/login"
+}
+
 const fetcher = async (url: string) => {
+  // Don't fetch if we're already redirecting
+  if (isRedirecting) {
+    return new Promise(() => {})
+  }
+
   const res = await fetch(url, {
     cache: "no-store",
     headers: { "Cache-Control": "no-cache" },
   })
 
+  // Check for 401 status before parsing JSON
+  if (res.status === 401) {
+    handleUnauthorized()
+    return new Promise(() => {})
+  }
+
   const data = await res.json()
 
-  // Check for authentication errors and redirect to login
-  if (data.error === "Not authenticated" || res.status === 401) {
-    window.location.href = "/login"
-    throw new Error("Not authenticated")
+  // Also check for auth error in response body
+  if (data.error === "Not authenticated") {
+    handleUnauthorized()
+    return new Promise(() => {})
   }
 
   return data

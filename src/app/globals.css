@@ -1,0 +1,134 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 20% 97%;
+    --foreground: 220 20% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 10%;
+    --primary: 328 100% 44%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 20% 10%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 10% 46%;
+    --accent: 220 14% 96%;
+    --accent-foreground: 220 20% 10%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 220 14% 90%;
+    --input: 220 14% 90%;
+    --ring: 328 100% 44%;
+    --radius: 0.75rem;
+
+    --sidebar-bg: 220 25% 12%;
+    --sidebar-fg: 220 10% 90%;
+    --sidebar-active: 328 100% 44%;
+  }
+
+  .dark {
+    --background: 220 25% 8%;
+    --foreground: 220 10% 98%;
+    --card: 220 25% 12%;
+    --card-foreground: 220 10% 98%;
+    --popover: 220 25% 12%;
+    --popover-foreground: 220 10% 98%;
+    --primary: 328 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 20% 18%;
+    --secondary-foreground: 220 10% 98%;
+    --muted: 220 20% 18%;
+    --muted-foreground: 220 10% 60%;
+    --accent: 220 20% 18%;
+    --accent-foreground: 220 10% 98%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 220 20% 20%;
+    --input: 220 20% 20%;
+    --ring: 328 100% 50%;
+
+    --sidebar-bg: 220 25% 6%;
+    --sidebar-fg: 220 10% 80%;
+    --sidebar-active: 328 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/70 dark:bg-white/5 backdrop-blur-xl border border-white/20 dark:border-white/10;
+  }
+
+  .glass-card {
+    @apply bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/30 dark:border-white/10 shadow-lg shadow-black/5;
+  }
+
+  .sidebar {
+    @apply bg-[hsl(var(--sidebar-bg))] text-[hsl(var(--sidebar-fg))];
+  }
+
+  .sidebar-item {
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 hover:bg-white/10;
+  }
+
+  .sidebar-item-active {
+    @apply bg-[hsl(var(--sidebar-active))] text-white shadow-lg shadow-magenta-500/30;
+  }
+
+  .signal-bar {
+    @apply rounded-full transition-all duration-300;
+  }
+
+  .gradient-bg {
+    background: linear-gradient(135deg,
+      hsl(328, 100%, 44%) 0%,
+      hsl(280, 80%, 50%) 50%,
+      hsl(220, 80%, 50%) 100%
+    );
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Signal bar animation */
+@keyframes pulse-signal {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-signal {
+  animation: pulse-signal 2s ease-in-out infinite;
+}

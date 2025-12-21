@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 48" fill="none">
+  <!-- 5G text - magenta to match wireless arcs -->
+  <text x="2" y="32" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="#e20074">5G</text>
+
+  <!-- Wireless signal arcs - magenta/pink color -->
+  <path d="M46 8c5.5 4 9 10.5 9 18s-3.5 14-9 18" stroke="#e20074" stroke-width="2.5" stroke-linecap="round" opacity="0.4"/>
+  <path d="M40 13c3.5 3 6 7.5 6 13s-2.5 10-6 13" stroke="#e20074" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+  <path d="M34 18c2 2 3.5 5 3.5 8s-1.5 6-3.5 8" stroke="#e20074" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

@@ -61,9 +61,13 @@ export function Sidebar({ collapsed = false, onCollapsedChange }: SidebarProps) 
     localStorage.setItem("sidebar-collapsed", String(newCollapsed))
   }
 
-  const handleLogout = () => {
-    document.cookie = "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT"
-    window.location.href = "/login"
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/router/logout", { method: "POST" })
+    } catch {
+      // Ignore errors
+    }
+    window.location.replace("/login")
   }
 
   return (

@@ -9,14 +9,23 @@ async function handleUnauthorized() {
   if (isRedirecting) return
   isRedirecting = true
 
-  // Clear cookies on server
+  // Clear cookies on server and wait for response
   try {
-    await fetch("/api/router/logout", { method: "POST" })
+    const response = await fetch("/api/router/logout", {
+      method: "POST",
+      credentials: "same-origin", // Ensure cookies are sent and received
+    })
+    // Wait for the response to ensure cookies are cleared
+    await response.json()
   } catch {
     // Ignore errors, proceed to redirect
   }
 
-  window.location.href = "/login"
+  // Small delay to ensure cookies are processed by browser
+  await new Promise(resolve => setTimeout(resolve, 100))
+
+  // Use replace to prevent back button issues
+  window.location.replace("/login")
 }
 
 const fetcher = async (url: string) => {

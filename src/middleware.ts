@@ -24,9 +24,12 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const authToken = request.cookies.get("auth_token")?.value
 
+  // Check if user is authenticated (token exists and is not empty)
+  const isAuthenticated = authToken && authToken.length > 0
+
   // Check if it's a protected API route
   if (protectedApiRoutes.some((route) => pathname.startsWith(route))) {
-    if (!authToken) {
+    if (!isAuthenticated) {
       return NextResponse.json(
         { error: "Not authenticated" },
         { status: 401 }
@@ -36,14 +39,14 @@ export function middleware(request: NextRequest) {
 
   // Check if it's a protected page
   if (protectedPages.includes(pathname)) {
-    if (!authToken) {
+    if (!isAuthenticated) {
       const loginUrl = new URL("/login", request.url)
       return NextResponse.redirect(loginUrl)
     }
   }
 
   // Redirect logged-in users away from login page
-  if (pathname === "/login" && authToken) {
+  if (pathname === "/login" && isAuthenticated) {
     const homeUrl = new URL("/", request.url)
     return NextResponse.redirect(homeUrl)
   }
@@ -54,12 +57,18 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (images, etc.)
+     * Match only specific paths that need middleware:
+     * - / (home)
+     * - /login
+     * - /devices, /wifi, /cell, /system (dashboard pages)
+     * - /api/router/* (API routes)
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/",
+    "/login",
+    "/devices",
+    "/wifi",
+    "/cell",
+    "/system",
+    "/api/router/:path*",
   ],
 }

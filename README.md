@@ -81,20 +81,39 @@ Login with your gateway credentials (found on the label of your device). The def
 
 ## Docker
 
-### Build and Run
+### Build
 
 ```bash
-# Build the image
 docker build -t g5ar-portal .
+```
 
-# Run the container
+### Run
+
+**Linux:**
+```bash
+docker run --network host g5ar-portal
+```
+
+**macOS/Windows:** Docker Desktop doesn't support `--network host`. Use port mapping instead:
+```bash
 docker run -p 3000:3000 g5ar-portal
 ```
 
+Access the portal at [http://localhost:3000](http://localhost:3000).
+
 ### Docker Compose
 
-Create a `docker-compose.yml`:
+**Linux** (`docker-compose.yml`):
+```yaml
+version: '3.8'
+services:
+  g5ar-portal:
+    build: .
+    network_mode: host
+    restart: unless-stopped
+```
 
+**macOS/Windows** (`docker-compose.yml`):
 ```yaml
 version: '3.8'
 services:
@@ -110,8 +129,6 @@ Then run:
 ```bash
 docker-compose up -d
 ```
-
-Access the portal at [http://localhost:3000](http://localhost:3000).
 
 ## Project Structure
 

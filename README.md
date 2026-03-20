@@ -81,10 +81,14 @@ Login with your gateway credentials (found on the label of your device). The def
 
 ## Docker
 
+### Prerequisites
+
+Make sure [Docker Desktop](https://www.docker.com/products/docker-desktop/) is installed and running before proceeding.
+
 ### Build
 
 ```bash
-docker build -t g5ar-portal .
+docker buildx build -t g5ar-portal .
 ```
 
 ### Run
@@ -105,7 +109,6 @@ Access the portal at [http://localhost:3000](http://localhost:3000).
 
 **Linux** (`docker-compose.yml`):
 ```yaml
-version: '3.8'
 services:
   g5ar-portal:
     build: .
@@ -115,7 +118,6 @@ services:
 
 **macOS/Windows** (`docker-compose.yml`):
 ```yaml
-version: '3.8'
 services:
   g5ar-portal:
     build: .
@@ -127,7 +129,7 @@ services:
 Then run:
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ## Project Structure

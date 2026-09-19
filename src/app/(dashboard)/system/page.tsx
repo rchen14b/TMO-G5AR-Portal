@@ -4,6 +4,8 @@ import { useState, useCallback } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { RefreshControl } from "@/components/refresh-control"
 import { useGatewayInfo, useVersion } from "@/hooks/use-router-data"
@@ -13,6 +15,9 @@ import {
   Power,
   Cpu,
   AlertTriangle,
+  KeyRound,
+  Eye,
+  EyeOff,
 } from "lucide-react"
 
 export default function SystemPage() {
@@ -20,6 +25,12 @@ export default function SystemPage() {
   const { data: versionData } = useVersion()
   const [rebooting, setRebooting] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
+  const [newUsername, setNewUsername] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [resetting, setResetting] = useState(false)
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
+  const [resetError, setResetError] = useState<string | null>(null)
 
   const device = gateway?.device
   const time = gateway?.time
@@ -28,6 +39,35 @@ export default function SystemPage() {
   const handleRefresh = useCallback(() => {
     mutate()
   }, [mutate])
+
+  const handleResetCredentials = async () => {
+    setResetting(true)
+    setResetError(null)
+    try {
+      const body: { usernameNew?: string; passwordNew?: string } = {}
+      if (newUsername) body.usernameNew = newUsername
+      if (newPassword) body.passwordNew = newPassword
+
+      const response = await fetch("/api/router/admin-reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      })
+
+      if (response.ok) {
+        window.location.replace("/login")
+      } else {
+        const data = await response.json().catch(() => ({}))
+        setResetError(data.error || "Failed to reset credentials")
+        setShowResetConfirm(false)
+      }
+    } catch {
+      setResetError("An unexpected error occurred")
+      setShowResetConfirm(false)
+    } finally {
+      setResetting(false)
+    }
+  }
 
   const handleReboot = async () => {
     setRebooting(true)
@@ -173,6 +213,94 @@ export default function SystemPage() {
                 System status not available
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Admin Credentials */}
+        <Card className="glass-card border-0 lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <KeyRound className="h-5 w-5 text-magenta-500" />
+              Admin Credentials
+            </CardTitle>
+            <CardDescription>
+              Reset the gateway administrator username and password
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="max-w-md space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="newUsername">New Username</Label>
+                <Input
+                  id="newUsername"
+                  value={newUsername}
+                  onChange={(e) => setNewUsername(e.target.value)}
+                  placeholder="Leave blank to keep current"
+                  className="h-12 rounded-xl bg-muted/30 border-border/50"
+                  disabled={resetting}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="newPassword">New Password</Label>
+                <div className="relative">
+                  <Input
+                    id="newPassword"
+                    type={showNewPassword ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Leave blank to keep current"
+                    className="h-12 rounded-xl bg-muted/30 border-border/50 pr-12"
+                    disabled={resetting}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {resetError && (
+                <div className="p-4 rounded-xl bg-destructive/10 text-destructive text-sm">
+                  {resetError}
+                </div>
+              )}
+
+              {!showResetConfirm ? (
+                <Button
+                  variant="destructive"
+                  onClick={() => setShowResetConfirm(true)}
+                  className="h-12 px-6"
+                  disabled={resetting}
+                >
+                  <KeyRound className="mr-2 h-4 w-4" />
+                  Reset Credentials
+                </Button>
+              ) : (
+                <div className="flex items-center gap-3 p-4 bg-destructive/10 rounded-xl border border-destructive/20">
+                  <AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0" />
+                  <span className="text-sm">This will immediately change the admin credentials. Continue?</span>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleResetCredentials}
+                    disabled={resetting}
+                  >
+                    {resetting ? "Resetting..." : "Yes, Reset"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowResetConfirm(false)}
+                    disabled={resetting}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
 

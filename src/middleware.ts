@@ -9,6 +9,7 @@ const protectedApiRoutes = [
   "/api/router/ap",
   "/api/router/telemetry",
   "/api/router/reboot",
+  "/api/router/admin-reset",
 ]
 
 // Dashboard pages that require authentication

@@ -282,6 +282,14 @@ export async function setApConfig(config: Partial<ApConfig>): Promise<void> {
   })
 }
 
+export async function resetAdminCredentials(body: { usernameNew?: string; passwordNew?: string }): Promise<void> {
+  return routerFetch("/TMI/v1/auth/admin/reset", {
+    auth: true,
+    method: "POST",
+    body,
+  })
+}
+
 export async function rebootGateway(): Promise<void> {
   return routerFetch("/TMI/v1/gateway/reset?set=reboot", {
     auth: true,

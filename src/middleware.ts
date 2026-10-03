@@ -14,7 +14,6 @@ const protectedApiRoutes = [
 
 // Dashboard pages that require authentication
 const protectedPages = [
-  "/",
   "/devices",
   "/wifi",
   "/cell",
@@ -42,6 +41,7 @@ export function middleware(request: NextRequest) {
   if (protectedPages.includes(pathname)) {
     if (!isAuthenticated) {
       const loginUrl = new URL("/login", request.url)
+      loginUrl.searchParams.set("from", pathname)
       return NextResponse.redirect(loginUrl)
     }
   }

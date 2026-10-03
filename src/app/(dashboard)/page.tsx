@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { SignalBars } from "@/components/signal-bars"
 import { SignalBarChart } from "@/components/signal-chart"
 import { RefreshControl } from "@/components/refresh-control"
-import { useGatewayInfo, useClients } from "@/hooks/use-router-data"
+import { useGatewayInfo, useClientsOptional } from "@/hooks/use-router-data"
 import { formatUptime } from "@/lib/utils"
 import {
   Wifi,
@@ -20,7 +20,7 @@ import {
 
 export default function Dashboard() {
   const { data: gateway, isLoading: gatewayLoading, mutate: mutateGateway } = useGatewayInfo()
-  const { data: clients, isLoading: clientsLoading, mutate: mutateClients } = useClients()
+  const { data: clients, isLoading: clientsLoading, mutate: mutateClients } = useClientsOptional()
 
   const handleRefresh = useCallback(() => {
     mutateGateway()
@@ -35,7 +35,7 @@ export default function Dashboard() {
   const totalClients = clients?.clients
     ? (clients.clients.wifi?.length || 0) +
       (clients.clients.ethernet?.length || 0)
-    : 0
+    : null
 
   return (
     <div className="space-y-8">
@@ -111,7 +111,7 @@ export default function Dashboard() {
                   <Smartphone className="h-5 w-5 text-blue-500" />
                 </div>
                 <div>
-                  <div className="font-bold">{totalClients}</div>
+                  <div className="font-bold">{totalClients ?? "—"}</div>
                   <p className="text-xs text-muted-foreground">Devices</p>
                 </div>
               </div>

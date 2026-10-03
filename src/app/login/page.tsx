@@ -1,15 +1,15 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2, Eye, EyeOff, Globe, User, Lock } from "lucide-react"
 import Image from "next/image"
 
+const allowedReturnPaths = new Set(["/", "/devices", "/wifi", "/cell", "/system"])
+
 export default function LoginPage() {
-  const router = useRouter()
   const [routerIp, setRouterIp] = useState("192.168.12.1")
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
@@ -63,7 +63,10 @@ export default function LoginPage() {
         } else {
           localStorage.removeItem("remembered_username")
         }
-        router.push("/")
+        const params = new URLSearchParams(window.location.search)
+        const from = params.get("from")
+        const dest = from && allowedReturnPaths.has(from) ? from : "/"
+        window.location.replace(dest)
       } else {
         setError(data.error || "Login failed")
       }

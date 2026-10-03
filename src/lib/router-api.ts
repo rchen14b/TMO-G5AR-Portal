@@ -304,3 +304,32 @@ export async function getVersion(): Promise<VersionInfo> {
 export async function getTelemetryAll(): Promise<TelemetryAll> {
   return routerFetch<TelemetryAll>("/TMI/v1/network/telemetry?get=all", { auth: true })
 }
+
+export interface Timeline {
+  daysOfWeek: string[]
+  startTime: string
+  endTime: string
+}
+
+export interface DeviceSchedule {
+  mac: string
+  ban: boolean
+  isEnabled: boolean
+  timelines: Timeline[]
+}
+
+export interface ScheduleInfo {
+  schedules: DeviceSchedule[]
+}
+
+export async function getSchedules(): Promise<ScheduleInfo> {
+  return routerFetch<ScheduleInfo>("/TMI/v1/profile/schedules", { auth: true })
+}
+
+export async function setDeviceSchedule(schedule: DeviceSchedule): Promise<void> {
+  return routerFetch("/TMI/v1/profile/schedules", {
+    auth: true,
+    method: "POST",
+    body: schedule,
+  })
+}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback } from "react"
+import { useCallback, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -15,13 +15,13 @@ import {
 import { useClients } from "@/hooks/use-router-data"
 import { SignalBars } from "@/components/signal-bars"
 import { RefreshControl } from "@/components/refresh-control"
+import { DeviceSheet, ClientWithType } from "@/components/device-sheet"
 import { Smartphone, Monitor, Wifi, Cable } from "lucide-react"
 import { Client } from "@/lib/router-api"
 
-type ClientWithType = Client & { type: "wifi" | "ethernet" | "2.4ghz" | "5.0ghz" }
-
 export default function DevicesPage() {
   const { data, isLoading, mutate } = useClients()
+  const [selectedClient, setSelectedClient] = useState<ClientWithType | null>(null)
 
   const handleRefresh = useCallback(() => {
     mutate()
@@ -29,10 +29,10 @@ export default function DevicesPage() {
 
   const allClients: ClientWithType[] = data?.clients
     ? [
-        ...(data.clients.wifi || []).map((c: Client) => ({ ...c, type: "wifi" as const })),
-        ...(data.clients.ethernet || []).map((c: Client) => ({ ...c, type: "ethernet" as const })),
-        ...(data.clients["2.4ghz"] || []).map((c: Client) => ({ ...c, type: "2.4ghz" as const })),
-        ...(data.clients["5.0ghz"] || []).map((c: Client) => ({ ...c, type: "5.0ghz" as const })),
+        ...(data.clients.wifi || []).map((c: Client) => ({ ...c, type: "wifi" })),
+        ...(data.clients.ethernet || []).map((c: Client) => ({ ...c, type: "ethernet" })),
+        ...(data.clients["2.4ghz"] || []).map((c: Client) => ({ ...c, type: "2.4ghz" })),
+        ...(data.clients["5.0ghz"] || []).map((c: Client) => ({ ...c, type: "5.0ghz" })),
       ]
     : []
 
@@ -175,7 +175,11 @@ export default function DevicesPage() {
                 </TableHeader>
                 <TableBody>
                   {uniqueClients.map((client) => (
-                    <TableRow key={client.mac} className="hover:bg-muted/20">
+                    <TableRow
+                      key={client.mac}
+                      className="hover:bg-muted/20 cursor-pointer"
+                      onClick={() => setSelectedClient(client)}
+                    >
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted/50">
@@ -220,6 +224,11 @@ export default function DevicesPage() {
           )}
         </CardContent>
       </Card>
+
+      <DeviceSheet
+        client={selectedClient}
+        onClose={() => setSelectedClient(null)}
+      />
     </div>
   )
 }

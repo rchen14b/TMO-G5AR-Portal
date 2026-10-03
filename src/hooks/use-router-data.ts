@@ -195,3 +195,23 @@ export function useTelemetryAll() {
     refreshInterval: 5000,
   })
 }
+
+export function useDeviceNames() {
+  return useSWR<Record<string, string>>("/api/device-names", fetcher, {
+    revalidateOnFocus: false,
+  })
+}
+
+export interface DeviceSchedule {
+  mac: string
+  ban: boolean
+  isEnabled: boolean
+  timelines: { daysOfWeek: string[]; startTime: string; endTime: string }[]
+}
+
+export function useDeviceSchedule(mac: string | null) {
+  return useSWR<DeviceSchedule>(
+    mac ? `/api/router/schedules?mac=${encodeURIComponent(mac)}` : null,
+    fetcher
+  )
+}

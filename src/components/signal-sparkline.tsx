@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useId, useMemo } from "react"
 import { cn } from "@/lib/utils"
 
 interface SignalSparklineProps {
@@ -41,7 +41,7 @@ export function SignalSparkline({
     magenta: "stroke-magenta-500",
   }
 
-  const gradientId = useMemo(() => `gradient-${Math.random().toString(36).substr(2, 9)}`, [])
+  const gradientId = `gradient-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`
 
   const areaPathD = useMemo(() => {
     if (data.length < 2) return ""

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -36,20 +36,14 @@ export default function WifiPage() {
   const [localConfig, setLocalConfig] = useState<LocalConfig | null>(null)
   const [hasChanges, setHasChanges] = useState(false)
 
-  // Sync local config with fetched data
-  useEffect(() => {
-    if (data && !localConfig) {
-      setLocalConfig(data as LocalConfig)
-    }
-  }, [data, localConfig])
-
-  // Reset local config when data changes (after save or refresh)
-  useEffect(() => {
-    if (data) {
-      setLocalConfig(data as LocalConfig)
-      setHasChanges(false)
-    }
-  }, [data])
+  // Reset local config when data changes (after save or refresh), or when a
+  // refresh cleared it
+  const [syncedData, setSyncedData] = useState(data)
+  if (data && (data !== syncedData || !localConfig)) {
+    setSyncedData(data)
+    setLocalConfig(data as LocalConfig)
+    setHasChanges(false)
+  }
 
   const ssid = localConfig?.ssids?.[0]
 

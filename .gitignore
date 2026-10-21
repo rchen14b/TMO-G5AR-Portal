@@ -13,6 +13,9 @@
 # Production
 /build
 
+# Signal-history data store
+/.data
+
 # Misc
 .DS_Store
 *.pem

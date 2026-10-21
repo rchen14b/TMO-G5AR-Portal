@@ -40,6 +40,9 @@ Gateway information, system status, and quick actions like reboot.
 - **Cell Info** - Detailed 5G metrics including tower ID, band info (n41), and GPS coordinates
 - **SIM Info** - ICCID, IMEI, IMSI details
 - **System Controls** - Reboot gateway, view device info and firmware version
+- **Signal History** - Background-recorded RSRP/RSRQ/SINR/RSSI charted over time (1h–7d) to compare antenna placement and track performance
+- **Placement Survey** - Tag samples with the gateway's current spot and compare spots side by side (SINR/RSRP, stability, band, cell, measured speed), with a live readout for fine positioning
+- **Speed Test** - Server-side download/upload and idle/loaded latency test, stored with the signal and survey spot at the time
 
 ## Tech Stack
 
@@ -78,6 +81,54 @@ npm run dev
 Open [http://localhost:3000](http://localhost:3000) to view the portal.
 
 Login with your gateway credentials (found on the label of your device). The default username is `admin` and the default gateway IP is `192.168.12.1`.
+
+## Signal History
+
+The server records the gateway's 5G signal (RSRP/RSRQ/SINR/RSSI/band) on an
+interval and stores it as JSONL, so the **History** page can chart signal
+quality over time — handy for finding the best antenna placement. Recording
+starts automatically the first time the portal is opened and continues in the
+background while the server runs (no browser needed). Samples are written to
+`.data/signal-history.jsonl` (mount a volume at `/app/.data` to persist across
+container restarts).
+
+Configure via environment variables:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ROUTER_IP` | `192.168.12.1` | Gateway IP the background poller queries |
+| `SIGNAL_POLL_INTERVAL_MS` | `60000` | How often to record a sample (ms) |
+| `SIGNAL_SURVEY_INTERVAL_MS` | `10000` | How often to record while a placement survey location is set (ms) |
+| `SIGNAL_MAX_ENTRIES` | `20000` | Max samples retained before old ones are pruned |
+| `SIGNAL_DATA_DIR` | `<cwd>/.data` | Directory for the JSONL store |
+| `SIGNAL_HISTORY_DISABLED` | _(unset)_ | Set to `1` to disable recording |
+
+### Placement survey
+
+To find the best spot for the gateway, open **Placement**, type a name for the
+spot, and press **Start recording here**, then move the gateway there. Samples
+are taken every 10 seconds and tagged with that name until you start another
+spot or stop. The comparison table skips the first 2 minutes of each visit
+while the gateway reconnects and ranks spots in this order: stays on the cell
+most samples used, reaches 15 dB average SINR, then RSRP (which sets upload
+speed) plus half the SINR, capped at 25 dB. Spots on another cell are
+highlighted, and the SINR spread column shows how steady each spot is. The
+**Live signal** card refreshes every 3 seconds and compares the current
+reading with the best spot so far, for nudging the gateway within a room. Run
+the portal on a laptop plugged into the gateway (or on its Wi-Fi) so it keeps
+reaching the gateway as you move it. **Export CSV** downloads every survey
+sample.
+
+### Speed test
+
+**Run speed test** on the Placement page measures download and upload with
+four parallel streams against Cloudflare (`speed.cloudflare.com`), and latency
+to 1.1.1.1 while idle and while each direction is saturated. A test takes about
+20 seconds and moves a few hundred MB on a fast link. Results are appended to
+`.data/speed-tests.jsonl` with the signal and survey spot at the time, and the
+comparison table shows each spot's median speeds. The test runs on the
+portal's host, so keep that machine wired to the gateway; over Wi-Fi the
+result measures the Wi-Fi link.
 
 ## Docker
 

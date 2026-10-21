@@ -195,3 +195,77 @@ export function useTelemetryAll() {
     refreshInterval: 5000,
   })
 }
+
+export interface SignalSample {
+  t: number // epoch milliseconds
+  rsrp: number
+  rsrq: number
+  sinr: number
+  rssi: number
+  bars: number
+  bands: string[]
+  cid: number
+  gnbid: number
+  reg: string
+  loc?: string
+  visit?: number
+}
+
+export interface SignalHistoryResponse {
+  hours: number
+  count: number
+  entries: SignalSample[]
+}
+
+// Recorded 5G signal history (polled server-side into a JSONL store).
+export function useSignalHistory(hours: number = 24) {
+  return useSWR<SignalHistoryResponse>(
+    `/api/router/history?hours=${hours}`,
+    fetcher,
+    {
+      refreshInterval: 60000,
+      keepPreviousData: true,
+    }
+  )
+}
+
+export interface SurveyResponse {
+  active: { location: string; since: number } | null
+  entries: SignalSample[]
+}
+
+// Placement survey: the active location label and all survey-tagged samples.
+export function useSurvey() {
+  return useSWR<SurveyResponse>("/api/router/survey", fetcher, {
+    refreshInterval: 5000,
+    keepPreviousData: true,
+  })
+}
+
+export interface SpeedTestResult {
+  t: number
+  downMbps: number
+  upMbps: number
+  idleMs: number
+  loadedDownMs: number
+  loadedUpMs: number
+  loadedP90Ms: number
+  probeLoss: number
+  colo: string
+  signal?: { rsrp: number; rsrq: number; sinr: number; bands: string[]; gnbid: number; cid: number }
+  loc?: string
+  visit?: number
+}
+
+export interface SpeedTestsResponse {
+  running: boolean
+  results: SpeedTestResult[]
+}
+
+// Stored speed tests (run server-side, tagged with the survey location).
+export function useSpeedTests() {
+  return useSWR<SpeedTestsResponse>("/api/router/speedtest", fetcher, {
+    refreshInterval: 10000,
+    keepPreviousData: true,
+  })
+}

@@ -2,13 +2,13 @@ import { cookies } from "next/headers"
 
 const DEFAULT_ROUTER_IP = "192.168.12.1"
 
-export function getRouterIp(): string {
-  const cookieStore = cookies()
+export async function getRouterIp(): Promise<string> {
+  const cookieStore = await cookies()
   return cookieStore.get("router_ip")?.value || DEFAULT_ROUTER_IP
 }
 
-export function getAuthToken(): string {
-  const cookieStore = cookies()
+export async function getAuthToken(): Promise<string> {
+  const cookieStore = await cookies()
   const token = cookieStore.get("auth_token")?.value
 
   if (!token) {
@@ -29,11 +29,11 @@ export async function routerFetch<T>(
   }
 
   if (auth) {
-    const token = getAuthToken()
+    const token = await getAuthToken()
     headers["Authorization"] = `Bearer ${token}`
   }
 
-  const routerIp = getRouterIp()
+  const routerIp = await getRouterIp()
   const response = await fetch(`http://${routerIp}${endpoint}`, {
     method,
     headers,

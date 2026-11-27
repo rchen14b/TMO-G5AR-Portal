@@ -29,6 +29,10 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Writable dir for the signal-history JSONL store. Mount a volume here to
+# persist history across container recreation (e.g. -v g5ar-data:/app/.data).
+RUN mkdir -p /app/.data && chown nextjs:nodejs /app/.data
+
 USER nextjs
 
 EXPOSE 3000

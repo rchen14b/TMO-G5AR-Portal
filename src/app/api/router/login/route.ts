@@ -17,10 +17,11 @@ export async function POST(request: Request) {
     const data = await response.json()
 
     if (data.auth?.token) {
+      const cookieStore = await cookies()
       const tokenMaxAge = data.auth.expiration - Math.floor(Date.now() / 1000)
 
       // Set auth cookie (secure only if actually using HTTPS)
-      cookies().set("auth_token", data.auth.token, {
+      cookieStore.set("auth_token", data.auth.token, {
         httpOnly: true,
         secure: false, // Allow HTTP for local network access
         sameSite: "lax",
@@ -29,7 +30,7 @@ export async function POST(request: Request) {
       })
 
       // Store router IP in cookie for other API routes
-      cookies().set("router_ip", ip, {
+      cookieStore.set("router_ip", ip, {
         httpOnly: true,
         secure: false, // Allow HTTP for local network access
         sameSite: "lax",

@@ -8,7 +8,7 @@ import { SignalBarChart } from "@/components/signal-chart"
 import { SignalBars } from "@/components/signal-bars"
 import { SignalSparkline } from "@/components/signal-sparkline"
 import { RefreshControl } from "@/components/refresh-control"
-import { useCellInfo, useSimInfo, useGatewayInfo } from "@/hooks/use-router-data"
+import { useCellInfo, useSimInfo } from "@/hooks/use-router-data"
 import { getSignalQuality, getSinrQuality } from "@/lib/utils"
 import { Radio, Antenna, MapPin, CreditCard, Gauge } from "lucide-react"
 
@@ -24,7 +24,6 @@ interface SignalHistory {
 export default function CellPage() {
   const { data: cell, isLoading: cellLoading, mutate: mutateCell } = useCellInfo()
   const { data: sim, isLoading: simLoading, mutate: mutateSim } = useSimInfo()
-  const { data: gateway } = useGatewayInfo()
 
   // Track signal history
   const [history, setHistory] = useState<SignalHistory>({

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Sidebar } from "@/components/sidebar"
 import { Github } from "lucide-react"
 
@@ -10,13 +10,6 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-
-  useEffect(() => {
-    const savedCollapsed = localStorage.getItem("sidebar-collapsed")
-    if (savedCollapsed !== null) {
-      setSidebarCollapsed(savedCollapsed === "true")
-    }
-  }, [])
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

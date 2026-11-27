@@ -9,6 +9,8 @@ const protectedApiRoutes = [
   "/api/router/ap",
   "/api/router/telemetry",
   "/api/router/reboot",
+  "/api/router/survey",
+  "/api/router/speedtest",
   "/api/router/admin-reset",
 ]
 
@@ -18,10 +20,12 @@ const protectedPages = [
   "/devices",
   "/wifi",
   "/cell",
+  "/history",
+  "/survey",
   "/system",
 ]
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   const authToken = request.cookies.get("auth_token")?.value
 
@@ -58,7 +62,7 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match only specific paths that need middleware:
+     * Match only specific paths that need the proxy:
      * - / (home)
      * - /login
      * - /devices, /wifi, /cell, /system (dashboard pages)
@@ -69,6 +73,8 @@ export const config = {
     "/devices",
     "/wifi",
     "/cell",
+    "/history",
+    "/survey",
     "/system",
     "/api/router/:path*",
   ],

@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useId } from "react"
 import {
   AreaChart,
   Area,
@@ -27,7 +27,7 @@ export function SignalChart({
   label = "Signal",
   unit = "dBm",
 }: SignalChartProps) {
-  const gradientId = useMemo(() => `gradient-${Math.random().toString(36).substr(2, 9)}`, [])
+  const gradientId = `gradient-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`
 
   return (
     <div className="w-full h-32">
